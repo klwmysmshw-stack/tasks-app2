@@ -18,6 +18,10 @@ export default function Home() {
 
   const fetchTasks = async () => {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client not initialized. Please check your environment variables.')
+      }
+
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
@@ -27,7 +31,7 @@ export default function Home() {
       setTasks(data || [])
     } catch (error) {
       console.error('Error fetching tasks:', error)
-      toast.error('Failed to load tasks')
+      toast.error('Failed to load tasks. Please check your configuration.')
     } finally {
       setLoading(false)
     }
@@ -35,6 +39,10 @@ export default function Home() {
 
   const addTask = async (title: string, description?: string) => {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client not initialized')
+      }
+
       const { data, error } = await supabase
         .from('tasks')
         .insert([{ title, description }])
@@ -53,6 +61,10 @@ export default function Home() {
 
   const updateTask = async (id: string, updates: Partial<Task>) => {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client not initialized')
+      }
+
       const { data, error } = await supabase
         .from('tasks')
         .update(updates)
@@ -71,6 +83,10 @@ export default function Home() {
 
   const deleteTask = async (id: string) => {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client not initialized')
+      }
+
       const { error } = await supabase
         .from('tasks')
         .delete()
@@ -94,6 +110,32 @@ export default function Home() {
 
   const completedTasks = tasks.filter(task => task.completed).length
   const totalTasks = tasks.length
+
+  // Check if Supabase is properly configured
+  if (!supabase) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="max-w-md mx-auto text-center bg-white rounded-lg shadow-lg p-8">
+          <div className="text-red-500 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Configuration Error</h2>
+          <p className="text-gray-600 mb-4">
+            Missing Supabase environment variables. Please check your configuration:
+          </p>
+          <div className="text-left bg-gray-50 p-4 rounded-lg text-sm">
+            <p className="font-medium mb-2">Required variables:</p>
+            <ul className="space-y-1 text-gray-600">
+              <li>• NEXT_PUBLIC_SUPABASE_URL</li>
+              <li>• NEXT_PUBLIC_SUPABASE_ANON_KEY</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (loading) {
     return (
